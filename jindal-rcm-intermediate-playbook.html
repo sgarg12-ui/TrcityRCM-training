@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jindal x Tricity — RCM Intermediate Playbook</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #07070E;
+    --bg1: #0D0D1A;
+    --bg2: #111120;
+    --bg3: #16162A;
+    --border: #1E1E35;
+    --border-faint: #141425;
+    --text0: #F0F0F8;
+    --text1: #A8A8C0;
+    --text2: #606078;
+    --text3: #3A3A55;
+    --mono: 'Courier New', 'Lucida Console', monospace;
+    --sans: Georgia, 'Times New Roman', serif;
+    --radius: 6px;
+    --radius-sm: 3px;
+    --phase-color: #00E5FF;
+    --phase-accent: #001820;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg0);
+    color: var(--text0);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg1); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Header ── */
+  #page-header {
+    background: linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 32px 0;
+    flex-shrink: 0;
+  }
+  .header-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .header-brand {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--phase-color); transition: color 0.3s;
+  }
+  #brand-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--phase-color); box-shadow: 0 0 10px var(--phase-color);
+    transition: background 0.3s, box-shadow 0.3s; flex-shrink: 0;
+  }
+  .header-version { display: flex; gap: 16px; font-size: 9px; color: var(--text3); letter-spacing: 0.1em; }
+  #page-title { font-size: clamp(15px, 2.2vw, 26px); font-weight: 700; letter-spacing: -0.02em; color: var(--text0); margin-bottom: 4px; }
+  .page-subtitle-line { font-size: 11px; color: var(--text2); font-family: var(--sans); margin-bottom: 16px; letter-spacing: 0.03em; }
+  #phase-nav { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 0; scrollbar-width: none; }
+  #phase-nav::-webkit-scrollbar { display: none; }
+  .phase-tab {
+    padding: 9px 14px; background: none; color: var(--text2);
+    border: 1px solid var(--border); border-radius: 6px 6px 0 0;
+    cursor: pointer; font-size: 10px; font-family: var(--mono);
+    letter-spacing: 0.12em; font-weight: 400; transition: all 0.18s; white-space: nowrap;
+  }
+  .phase-tab[aria-selected="true"] { background: var(--phase-color); color: #000; border-color: var(--phase-color); font-weight: 700; }
+
+  /* ── Progress ── */
+  #progress-wrap { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; margin-bottom: 20px; }
+  #progress-bar { height: 100%; background: var(--phase-color); border-radius: 1px; transition: width 0.35s ease, background 0.35s ease; }
+
+  /* ── Main ── */
+  #main-content { flex: 1; padding: 22px 32px 28px; max-width: 1160px; width: 100%; margin: 0 auto; }
+
+  /* ── Audience banner ── */
+  #audience-banner {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-left: 3px solid #B388FF; border-radius: var(--radius);
+    padding: 12px 16px; margin-bottom: 20px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  #audience-banner.hidden { display: none; }
+  .audience-banner-body { flex: 1; }
+  .audience-banner-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .audience-banner-text { font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.75; }
+  .audience-banner-text strong { color: #B388FF; }
+  #audience-dismiss { background: none; border: none; color: var(--text3); cursor: pointer; font-family: var(--mono); font-size: 12px; padding: 0 4px; flex-shrink: 0; }
+
+  /* ── Phase title bar ── */
+  #phase-titlebar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, var(--phase-accent) 0%, var(--bg1) 100%);
+    border: 1px solid rgba(0,229,255,0.13);
+    border-left: 3px solid var(--phase-color);
+    border-radius: var(--radius); transition: background 0.35s, border-color 0.35s;
+  }
+  #phase-titlebar h2 { font-size: 16px; color: var(--text0); letter-spacing: -0.01em; margin-bottom: 3px; }
+  #phase-subtitle { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--phase-color); transition: color 0.3s; }
+
+  /* ── Two-column ── */
+  #columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; }
+
+  /* ── Inner tabs ── */
+  #inner-nav { display: flex; overflow-x: auto; border-bottom: 1px solid var(--border); margin-bottom: 20px; scrollbar-width: none; }
+  #inner-nav::-webkit-scrollbar { display: none; }
+  .inner-tab {
+    padding: 6px 12px; background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text2); cursor: pointer; font-size: 10px; font-family: var(--mono);
+    letter-spacing: 0.1em; white-space: nowrap; transition: all 0.15s;
+  }
+  .inner-tab[aria-selected="true"] { color: var(--phase-color); border-bottom-color: var(--phase-color); background: rgba(0,229,255,0.07); }
+
+  #inner-panel { min-height: 280px; }
+  .kb-hint { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-faint); font-size: 9px; color: var(--text3); letter-spacing: 0.1em; }
+
+  .section-label { font-size: 9px; color: var(--text3); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px; display: block; }
+  .tag { display: inline-block; font-size: 9px; font-family: var(--mono); color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+  .tag.colored { color: var(--phase-color); background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.2); }
+  .tag.warn { color: #FFD740; background: rgba(255,215,64,0.08); border-color: rgba(255,215,64,0.2); }
+  .divider { height: 1px; background: linear-gradient(90deg, rgba(0,229,255,0.2), transparent); margin: 14px 0; }
+  .overview-text { font-size: 13px; line-height: 1.85; color: var(--text1); font-family: var(--sans); }
+
+  /* ── Checklist ── */
+  .check-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-faint); align-items: flex-start; cursor: pointer; user-select: none; }
+  .check-box { width: 16px; height: 16px; border: 1px solid var(--text3); border-radius: 2px; background: transparent; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.15s; }
+  .check-item.done .check-box { border-color: var(--phase-color); background: rgba(0,229,255,0.12); color: var(--phase-color); }
+  .check-item.done .check-label { text-decoration: line-through; opacity: 0.45; }
+  .check-label { font-size: 13px; color: var(--text0); transition: opacity 0.15s; }
+  .check-note { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.55; }
+
+  /* ── Examples ── */
+  .example-card { background: var(--bg2); border: 1px solid var(--border); border-left: 2px solid var(--phase-color); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; }
+  .example-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .example-prompt { font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.7; font-style: italic; }
+
+  /* ── Pitfalls ── */
+  .pitfall-card { margin-bottom: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .pitfall-mistake { padding: 9px 14px; background: #120808; border-bottom: 1px solid var(--border); font-size: 12px; color: #FF8080; font-family: var(--mono); }
+  .pitfall-fix { padding: 9px 14px; font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.65; }
+
+  /* ── Templates ── */
+  .template-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .template-pre { font-family: var(--mono); font-size: 11px; color: var(--text1); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; white-space: pre-wrap; line-height: 1.75; margin-bottom: 14px; }
+
+  /* ── Metrics ── */
+  .metric-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-faint); align-items: flex-start; }
+  .metric-num { color: var(--phase-color); font-size: 10px; font-family: var(--mono); flex-shrink: 0; margin-top: 2px; }
+  .metric-text { font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.65; }
+
+  /* ── Stella ── */
+  .stella-row { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-faint); }
+  .stella-plus { color: var(--phase-color); font-family: var(--mono); font-size: 10px; flex-shrink: 0; }
+  .stella-item { font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.65; }
+  .stella-body { font-size: 12px; color: var(--text1); font-family: var(--sans); line-height: 1.75; }
+  .req-block { margin-bottom: 10px; }
+  .req-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .req-label { font-size: 9px; font-family: var(--mono); letter-spacing: 0.15em; }
+  .req-label.good { color: #69FF47; }
+  .req-label.bad  { color: #FF8080; }
+  .req-text { font-size: 12px; color: var(--text1); font-family: var(--sans); font-style: italic; border-radius: var(--radius); padding: 10px 12px; line-height: 1.7; }
+  .req-text.good { background: #080F08; border: 1px solid #1A301A; }
+  .req-text.bad  { background: #120808; border: 1px solid #301A1A; }
+
+  /* ── Copy btn ── */
+  .copy-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 9px; font-family: var(--mono); padding: 2px 8px; cursor: pointer; letter-spacing: 0.1em; transition: all 0.15s; white-space: nowrap; }
+  .copy-btn.copied { border-color: var(--phase-color); color: var(--phase-color); background: rgba(0,229,255,0.08); }
+
+  /* ── Right panel ── */
+  #right-panel { min-width: 0; }
+  .role-filters { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-bottom: 14px; }
+  .role-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 9px; font-family: var(--mono); padding: 3px 8px; cursor: pointer; letter-spacing: 0.1em; transition: all 0.15s; }
+  .role-btn[aria-pressed="true"] { background: rgba(0,229,255,0.1); border-color: var(--phase-color); color: var(--phase-color); }
+  .usecase-filters-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .uc-card { margin-bottom: 8px; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s; }
+  .uc-card.open { background: var(--bg2); border-color: rgba(0,229,255,0.25); }
+  .uc-trigger { width: 100%; background: none; border: none; padding: 12px 14px; cursor: pointer; text-align: left; }
+  .uc-trigger-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .uc-toggle { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .uc-query { font-size: 12px; color: var(--text1); font-style: italic; font-family: var(--sans); line-height: 1.6; text-align: left; }
+  .uc-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border-faint); }
+  .uc-card.open .uc-body { display: block; }
+  .uc-agent-row { display: flex; gap: 8px; align-items: center; margin: 12px 0 8px; }
+  .uc-agent-label { font-size: 9px; color: var(--text3); letter-spacing: 0.1em; }
+  .uc-result { font-size: 12px; color: #90C090; background: #080F08; border: 1px solid #1A301A; border-radius: var(--radius-sm); padding: 9px 12px; line-height: 1.7; font-family: var(--sans); }
+
+  /* ── Sources list ── */
+  .integrations-wrap { margin-top: 24px; }
+  .integrations-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  /* ── Footer ── */
+  #page-footer { padding: 14px 32px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg1); flex-shrink: 0; }
+  .footer-btn { padding: 8px 18px; border-radius: var(--radius); font-size: 10px; font-family: var(--mono); letter-spacing: 0.12em; cursor: pointer; transition: all 0.18s; border: 1px solid var(--border); background: none; color: var(--text1); }
+  .footer-btn:disabled { color: var(--text3); border-color: var(--border-faint); cursor: not-allowed; }
+  .footer-btn.next { background: var(--phase-color); border-color: var(--phase-color); color: #000; font-weight: 700; }
+  .footer-btn.next:disabled { background: none; border-color: var(--border-faint); color: var(--text3); }
+  .dot-nav { display: flex; gap: 8px; align-items: center; }
+  .dot-btn { height: 6px; border-radius: 3px; border: none; background: var(--border); cursor: pointer; padding: 0; transition: all 0.3s ease; width: 6px; }
+  .dot-btn[aria-current="step"] { background: var(--phase-color); width: 22px; }
+
+  @media (max-width: 720px) {
+    #page-header { padding: 16px 16px 0; }
+    #main-content { padding: 16px 16px 24px; }
+    #page-footer { padding: 12px 16px; }
+    #columns { grid-template-columns: 1fr; }
+    #right-panel { margin-top: 24px; }
+    .phase-tab { font-size: 9px; padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header id="page-header" role="banner">
+  <div class="header-meta">
+    <div class="header-brand">
+      <div id="brand-dot"></div>
+      <span>Jindal x Tricity / RCM Supaboard — Intermediate Playbook</span>
+    </div>
+    <div class="header-version">
+      <span>v1.0.0</span>
+      <span>Level: Intermediate</span>
+      <span>March 2026</span>
+    </div>
+  </div>
+  <h1 id="page-title">RCM Intermediate Playbook — Jindal x Tricity Workspace</h1>
+  <p class="page-subtitle-line">For users who already navigate Supaboard. This playbook upgrades your query precision, agent tuning, and dashboard discipline.</p>
+  <nav id="phase-nav" aria-label="Phases" role="tablist"></nav>
+</header>
+
+<main id="main-content">
+  <div id="progress-wrap" role="progressbar" aria-valuemin="1" aria-valuemax="5">
+    <div id="progress-bar"></div>
+  </div>
+
+  <aside id="audience-banner" role="note">
+    <div class="audience-banner-body">
+      <div class="audience-banner-head">
+        <span class="tag warn">LEVEL</span>
+        <span style="font-size:10px;color:var(--text2);font-family:var(--mono)">Intermediate — assumes basic Supaboard navigation is already familiar</span>
+      </div>
+      <p class="audience-banner-text">
+        You already know how to connect a source, run a chat query, and read Stella's output.
+        This playbook is about the next layer: <strong>writing queries that Stella can actually act on</strong>,
+        tuning agents with RCM-specific rulesets, building SLA-tracked dashboards, and governing
+        output quality before anything reaches a client or QBR. Every example references your
+        real Tricity tables and SLA targets — nothing generic.
+      </p>
+    </div>
+    <button id="audience-dismiss" aria-label="Dismiss banner">[x]</button>
+  </aside>
+
+  <div id="phase-titlebar">
+    <div>
+      <h2 id="phase-title-text"></h2>
+      <p id="phase-subtitle"></p>
+    </div>
+  </div>
+
+  <div id="columns">
+    <section id="left-panel" role="tabpanel">
+      <nav id="inner-nav" aria-label="Phase details" role="tablist"></nav>
+      <div id="inner-panel"></div>
+      <p class="kb-hint">[ARROW] switch phase &nbsp;&nbsp; [CMD/CTRL + ARROW] switch tab</p>
+    </section>
+
+    <aside id="right-panel">
+      <div class="usecase-filters-row">
+        <span class="section-label" style="margin-bottom:0">Real-world RCM queries</span>
+        <div class="role-filters" id="role-filters" role="group" aria-label="Filter by role"></div>
+      </div>
+      <div id="uc-list"></div>
+      <div class="integrations-wrap">
+        <span class="section-label">Connected data sources — Tricity workspace</span>
+        <div class="integrations-tags" id="integrations-tags"></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer id="page-footer" role="contentinfo">
+  <button class="footer-btn" id="btn-prev" aria-label="Previous phase">[&lt;] PREV</button>
+  <div class="dot-nav" id="dot-nav" role="presentation"></div>
+  <button class="footer-btn next" id="btn-next" aria-label="Next phase">NEXT [&gt;]</button>
+</footer>
+
+<script>
+'use strict';
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const INNER_TABS = ['Overview','Checklist','Examples','Pitfalls','Templates','Metrics','About Stella'];
+
+const SOURCES = [
+  'tricity (Snowflake)','BILLING_TABLE','CLAIM_TABLE','DENIALS','REJECTIONS',
+  'OPEN_AR','PAYMENTS_TABLE','APPOINTMENTS',
+  'VW_TRICITY_FOLLOWUP_SB','VW_TRICITY_AUTHORIZATION_SB',
+  'TRICITYVERIFICATIONVIEW_SB','VW_TRICITY_CORRESPONDENCE_SB',
+  'VW_TRICITY_FAX_SB','VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB',
+  'QBR_HIGH_LEVEL_METRICS1',
+  'aqua (Audit)','VIEW_AUDIT_HEADER','VIEW_AUDIT_PARAMETER','VIEW_AUDIT_CALL_IDENTIFIER',
+  'touchpoint (Snowflake)','VW_MASTERAGENTDATA_SB'
+];
+
+// ── Use cases ─────────────────────────────────────────────────────────────────
+const USE_CASES = [
+  {
+    role: 'RCM Director',
+    query: 'Show denial rate by mapped category for the last 6 full months. Which payer group is driving the highest Authorization denial volume, and has that trended up or down?',
+    agent: 'Denials Agent',
+    result: 'Authorization denials = 31% of total volume. BCBS_Group is the top driver — up 8 points over 6 months. Coding denials flat. Recommended: escalate BCBS auth workflow review. Source: DENIALS, DATE_TRUNC by month, BCBS grouping applied.'
+  },
+  {
+    role: 'Denials Analyst',
+    query: 'Which denial categories breached their 2% SLA rate this month? For each breach, show the top 3 contributing PRIMARY_PAYER_NAME values and average DENIAL_AMOUNT.',
+    agent: 'Denials Agent',
+    result: 'Coding (2.7%) and Eligibility (2.3%) both over SLA. Coding top payers: BCBS_Group, Aetna, UHC. Eligibility top payers: Medicaid, Tricare, BCBS_Group. Avg amounts appended. Source: DENIALS.'
+  },
+  {
+    role: 'AR Specialist',
+    query: 'What percentage of our open AR balance sits beyond 90 days, broken by RESPONSIBLE_PARTY? Flag any bucket where the rate exceeds the 15% progressing goal.',
+    agent: 'AR Agent',
+    result: '90+ AR = 19.4% overall — above the 15% progressing goal. Insurance bucket at 22%, Patient at 14%. BCBS_Group and Medicare driving insurance aging. Source: OPEN_AR, most recent REPORTDATE.'
+  },
+  {
+    role: 'Claim Submission',
+    query: 'For claims filtered to PATIENT_NUMBER ILIKE \'%C017%\', what is the average submission lag in business days over the last 3 full months? Were there any weeks that breached the 3 BD SLA?',
+    agent: 'Claims Agent',
+    result: 'Avg lag = 2.4 BD — within SLA. Week of 2026-01-06 spiked to 4.1 BD due to volume surge post-holiday. All other weeks compliant. Source: CLAIM_TABLE, SUBMISSION_DATE minus SERVICE_DATE, C017% filter applied.'
+  },
+  {
+    role: 'Auth Coordinator',
+    query: 'How many authorizations in VW_TRICITY_AUTHORIZATION_SB have a pending CURRENTAUTHSTATUS beyond the 7-calendar-day 1st TAT SLA? Break by facility and flag Indiana cases against the 2 BD initiation SLA.',
+    agent: 'Auth Agent',
+    result: '23 authorizations exceed 7-day 1st TAT. 6 are Indiana cases — 4 of those also breach the 2 BD initiation SLA. Facility breakdown attached. Source: VW_TRICITY_AUTHORIZATION_SB, ORDERDATE.'
+  },
+  {
+    role: 'Eligibility Specialist',
+    query: 'What is our eligibility-related rejection rate for this month? Compare it to the 2% SLA. Break by payer and show the top 3 REJECTION_CODE values mapped to their category.',
+    agent: 'Rejections Agent',
+    result: 'Eligibility rejection rate = 1.8% — within SLA. Top mapped category: Eligibility. Top 3 codes resolve to: Eligibility (2 codes), Authorization (1 code). Payer breakdown: Medicaid highest at 3.1%. Source: REJECTIONS.'
+  },
+  {
+    role: 'Payment Poster',
+    query: 'How many ERA postings in the last 30 days exceeded the 2 BD TAT SLA? Show average days-to-post by PRIMARY_PAYER_NAME and flag the top 3 laggards.',
+    agent: 'Payments Agent',
+    result: '47 ERA postings exceeded 2 BD TAT. Avg days-to-post: UHC = 3.8 BD, Aetna = 3.2 BD, BCBS_Group = 2.9 BD. All three flagged. Recommend prioritising ERA queue for these payers. Source: PAYMENTS_TABLE.'
+  },
+  {
+    role: 'QA Lead',
+    query: 'Pull TOTALQUALITYSCORE and AUDITCOUNT by agent from VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB for last month. Flag anyone below 90% quality threshold and cross-reference their TOTALCLIAMWORKED volume.',
+    agent: 'QA Agent',
+    result: '4 agents below 90% threshold. 2 of those have AUDITCOUNT < 5 — statistically low sample. 2 others have high TOTALCLIAMWORKED (400+) suggesting fatigue pattern. Recommend audit increase and workload review. Source: VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB.'
+  },
+];
+
+const ALL_ROLES = ['All', ...Array.from(new Set(USE_CASES.map(u => u.role)))];
+
+// ── Steps ─────────────────────────────────────────────────────────────────────
+const STEPS = [
+  {
+    id: 1, phase: 'Connect', label: '01 / CONNECT',
+    title: 'Validate and Extend Your Data Layer',
+    subtitle: 'You are connected — now make the connections precise',
+    color: '#00E5FF', accent: '#001820',
+    detail: 'At the intermediate level, "connected" is not enough. You already have tricity, aqua, and touchpoint syncing. The real work now is ensuring Stella can navigate those sources correctly: join logic is explicit, date fields are anchored to DATE_TRUNC(\'MONTH\'), payer grouping is consistent, and the C017% client filter is embedded where required. A misconfigured connection doesn\'t error — it returns subtly wrong numbers at scale.',
+    actions: [
+      { label: 'Audit join logic between BILLING_TABLE and CLAIM_TABLE', note: 'Confirm CLAIM_NO is the shared key. Ambiguous joins silently double-count charges vs. submissions.' },
+      { label: 'Lock DATE_TRUNC(\'MONTH\') as the workspace timeframe standard', note: 'Every agent and dashboard must use full-month truncation. Rolling 30-day windows produce period overlap and break MoM comparisons.' },
+      { label: 'Verify BCBS_Group payer grouping fires correctly', note: 'Run DISTINCT PRIMARY_PAYER_NAME on DENIALS and confirm all BCBS variants (e.g., BCBS IL, BCBS of Indiana) resolve to BCBS_Group in any group-by output.' },
+      { label: 'Embed the C017% filter in CLAIM_TABLE scope', note: 'Submission lag analysis only applies to Tricity client claims. Add WHERE PATIENT_NUMBER ILIKE \'%C017%\' as a locked filter in the Claims Agent table config.' },
+      { label: 'Confirm OPEN_AR REPORTDATE freshness', note: 'AR aging numbers are only valid as of the latest REPORTDATE. Always surface that date alongside AR metrics to prevent stale-data decisions.' },
+      { label: 'Cross-check aqua audit views against tricity operational tables', note: 'VIEW_AUDIT_HEADER row counts should reconcile with expected claim activity. A divergence signals a sync gap, not an operational trend.' },
+    ],
+    examples: [
+      { prompt: 'Run DISTINCT PRIMARY_PAYER_NAME from DENIALS for the last 3 months. Flag any name containing "BCBS" that is NOT already resolving to BCBS_Group in payer-level breakdowns. Count affected denial rows.', context: 'Payer grouping audit' },
+      { prompt: 'Show the maximum REPORTDATE in OPEN_AR. If it is more than 2 business days old, surface a warning alongside any AR aging output generated today.', context: 'AR data freshness check' },
+      { prompt: 'From CLAIM_TABLE, run a count of records where PATIENT_NUMBER ILIKE \'%C017%\' for the current month. Then run the same count without the filter. Show the % difference — this is the share of non-Tricity claims that would corrupt submission lag if unfiltered.', context: 'C017% filter validation' },
+      { prompt: 'Join BILLING_TABLE and CLAIM_TABLE on CLAIM_NO for last month. Flag any CLAIM_NO present in one table but not the other. These are the records that break cross-table charge-vs-submission reconciliation.', context: 'Join key integrity check' },
+    ],
+    pitfalls: [
+      { mistake: 'Assuming a connected source is also correctly scoped', fix: 'Connection confirms Supaboard can reach the table. It does not confirm that the payer grouping, client filter, or date truncation logic is applied. Audit each explicitly.' },
+      { mistake: 'Using raw DENIAL_CATEGORY or REJECTION_CODE values in dashboards', fix: 'The source tables store operational codes. All outputs must apply the denial category mapping (7 categories) and rejection code-to-category mapping before display. Never surface raw values to end users.' },
+      { mistake: 'Mixing DATE_TRUNC(\'MONTH\') with rolling 30-day windows in the same report', fix: 'Pick one convention and apply it workspace-wide. Rolling windows and calendar months produce different denominators — combining them creates rates that cannot be reconciled.' },
+      { mistake: 'Treating OPEN_AR as a real-time table', fix: 'OPEN_AR is snapshot-based. Always display the REPORTDATE alongside any AR aging figure so readers know the observation point.' },
+      { mistake: 'Relying on aqua audit views for operational claim counts', fix: 'Aqua is for QA and audit trail queries. Operational claim and denial volumes come from tricity. Mixing the two sources inflates or deflates counts unpredictably.' },
+    ],
+    templates: [
+      { label: 'Connection Precision Audit', content: 'Source: tricity\nDate: [audit date]\nConducted by: [name]\n\n[ ] BCBS_Group grouping: tested on DISTINCT payer names in DENIALS\n    Variants confirmed: [list e.g. "BCBS IL", "BCBS of Indiana", "BlueCross BlueShield"]\n    All resolving correctly: [Yes / No — list exceptions]\n\n[ ] C017% filter: confirmed applied in CLAIM_TABLE Claims Agent scope\n    Record count with filter: [N]\n    Record count without filter: [N]\n    % non-Tricity claims excluded: [X%]\n\n[ ] DATE_TRUNC(\'MONTH\') confirmed as workspace standard\n    Legacy rolling-window queries identified: [list or "None"]\n\n[ ] OPEN_AR REPORTDATE: [date of latest snapshot]\n    Within 2 BD: [Yes / No]\n\n[ ] JOIN integrity BILLING_TABLE <-> CLAIM_TABLE on CLAIM_NO\n    Unmatched records: [N]\n    Action required: [Yes / No]' },
+      { label: 'Payer Grouping CASE Statement', content: '-- Apply in any query that groups by payer\nCASE\n  WHEN UPPER(PRIMARY_PAYER_NAME) LIKE \'%BCBS%\' THEN \'BCBS_Group\'\n  ELSE PRIMARY_PAYER_NAME\nEND AS PAYER_GROUP\n\n-- Denial category mapping reference:\n-- "Edit/Claim Information/Efficacy"    -> Coding\n-- "Documentation"                      -> Additional Information\n-- "Benefit Level/COB/Eligibility"     -> Eligibility\n-- "Authorization"                      -> Authorization\n-- "Timely Filing"                      -> Timely Filing\n-- "Rendering/Referring Provider"       -> Credentialing\n-- "Miscellaneous"                      -> Miscellaneous' },
+    ],
+    metrics: [
+      'Zero BCBS payer variants surfacing outside BCBS_Group in any grouped output',
+      'C017% filter confirmed active in Claims Agent — submission lag queries return only Tricity client records',
+      'All denial and rejection outputs use mapped category names, not raw source codes',
+      'OPEN_AR REPORTDATE is within 2 BD of any AR aging query date',
+      'DATE_TRUNC(\'MONTH\') used in 100% of period-comparative queries across all agents',
+      'JOIN integrity check between BILLING_TABLE and CLAIM_TABLE completed monthly',
+    ],
+    stella: {
+      bestAt: [
+        'Detecting payer name variants that break BCBS_Group grouping and surfacing them before a query runs',
+        'Applying denial category and rejection code mappings automatically when category-level output is requested',
+        'Flagging when a CLAIM_TABLE query is missing the C017% filter and refusing to return submission lag without it',
+      ],
+      needs: [
+        'Explicit date field names per table — e.g., DENIAL_DATE for DENIALS, REPORTDATE for OPEN_AR. Do not assume.',
+        'Confirmation of which table is the authority for a given metric when BILLING_TABLE and CLAIM_TABLE overlap',
+        'The OPEN_AR snapshot date surfaced alongside any request for AR aging to avoid stale-data outputs',
+      ],
+      ambiguity: 'If a payer name is ambiguous — e.g., "Blue Cross" without a state suffix — Stella will flag the ambiguity and list the matching payer variants found in the source data before applying the BCBS_Group rule.',
+      citation: 'Every query output includes: source table name, date field and truncation used, payer grouping rule applied, mapping version, and row count at the time of execution.',
+      good: 'From DENIALS, show denial rate by mapped category for DATE_TRUNC(\'MONTH\', DENIAL_DATE) over the last 6 full months. Apply the 7-category denial mapping. Group payers containing BCBS into BCBS_Group. Do not return raw DENIAL_CATEGORY values. Flag any month where any category exceeds its 2% SLA target.',
+      bad: 'Show me denials by category for the last 6 months.',
+    },
+  },
+
+  {
+    id: 2, phase: 'Train', label: '02 / TRAIN',
+    title: 'Tune RCM Agents Beyond the Basics',
+    subtitle: 'Embed SLA targets, mappings, and claim-lifecycle logic',
+    color: '#B388FF', accent: '#0E0020',
+    detail: 'You have already created agents and written an initial ruleset. The intermediate step is making those agents operationally precise: every SLA target loaded verbatim, the denial and rejection mappings embedded as rules (not assumed), payer grouping logic hardcoded, and each agent scoped to the exact tables it needs. An agent without explicit SLA targets cannot flag breaches. An agent without the mapping table returns raw codes into client-facing outputs.',
+    actions: [
+      { label: 'Load all 20 SLA targets into the Master Ruleset verbatim', note: 'Do not paraphrase. "Days in AR <= 30 Days" means exactly that — not "under a month." Stella compares to the literal target in your ruleset.' },
+      { label: 'Embed denial category mapping as a ruleset rule, not a prompt hint', note: 'Write the 7-category mapping as a permanent rule: "When DENIAL_CATEGORY = X, return Y." This applies to every Denials Agent query without repetition.' },
+      { label: 'Embed rejection code-to-category mapping in the Rejections Agent', note: 'Raw REJECTION_CODE values must never appear in agent outputs. The mapping must be a locked rule, not applied ad hoc.' },
+      { label: 'Scope each agent to its minimum required tables', note: 'Denials Agent: DENIALS + BILLING_TABLE. AR Agent: OPEN_AR. Claims Agent: CLAIM_TABLE (C017% mandatory). Auth Agent: VW_TRICITY_AUTHORIZATION_SB. QA Agent: VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB + aqua views.' },
+      { label: 'Define "breach" behaviour explicitly in each agent', note: 'Tell the agent: if the metric exceeds its SLA target, surface it as a breach with the exact target value, actual value, and delta — not just a number.' },
+      { label: 'Run a calibration query before sharing any agent', note: 'Ask one question with a known answer — e.g., last month\'s Coding denial rate from your QBR. If Stella\'s output differs, fix the ruleset before deployment.' },
+    ],
+    examples: [
+      { prompt: 'Denials Agent calibration: What is the Coding denial rate for DATE_TRUNC(\'MONTH\', DENIAL_DATE) = two months ago? Compare to the 2% SLA. Apply denial category mapping. Return: mapped category, count, denial amount, rate, SLA target, breach status.', context: 'Denials Agent calibration' },
+      { prompt: 'Auth Agent calibration: How many records in VW_TRICITY_AUTHORIZATION_SB have CURRENTAUTHSTATUS = \'Pending\' and ORDERDATE older than 7 calendar days? Break by facility. Flag Indiana cases where INITIATEDON exceeds 2 BD from ORDERDATE.', context: 'Auth Agent calibration' },
+      { prompt: 'AR Agent calibration: From OPEN_AR as of the latest REPORTDATE, what percentage of total BALANCE has SERVICE_DATE older than 90 days? Break by RESPONSIBLE_PARTY. Flag if the rate exceeds the 15% progressing goal. Show the REPORTDATE used.', context: 'AR Agent calibration' },
+      { prompt: 'Payments Agent calibration: From PAYMENTS_TABLE, how many ERA records posted in the last full month have a lag exceeding 2 BD between the expected receipt date and PAYMENT_POSTED_DATE? Break by PRIMARY_PAYER_NAME and flag top 3.', context: 'Payments Agent calibration' },
+    ],
+    pitfalls: [
+      { mistake: 'Writing SLA targets as prose rather than exact values', fix: '"Try to keep denials low" is not a ruleset. "Coding related Denial Rate <= 2%" is. Stella matches against the exact value — approximations produce silent misclassifications.' },
+      { mistake: 'Training one combined "RCM Agent" for all functions', fix: 'A single agent with access to all tables is slower, more error-prone, and harder to calibrate. Scope agents tightly: one per RCM function, minimum table access.' },
+      { mistake: 'Updating SLA targets in chat without updating the Master Ruleset', fix: 'Chat overrides are session-only. If a client changes a target, update the Master Ruleset and re-deploy the affected agents. Otherwise the next query uses the old target.' },
+      { mistake: 'Assuming Stella infers the mapping from column values', fix: 'Stella does not read raw DENIAL_CATEGORY values and auto-map them. The mapping must be written as an explicit ruleset rule. Without it, raw codes appear in outputs.' },
+      { mistake: 'Skipping calibration on agents shared with the RCM Director or client-facing roles', fix: 'A miscalibrated agent used by an RCM Director produces incorrect QBR inputs. Calibrate against a known historical period before granting elevated access.' },
+    ],
+    templates: [
+      { label: 'Master Ruleset — Jindal x Tricity v1', content: '# Jindal x Tricity Master Ruleset v1\n\n## Timeframe Standard\n- All period comparisons use DATE_TRUNC(\'MONTH\', [date_field])\n- "Last 6 months" = 6 complete calendar months, not rolling days\n\n## Payer Grouping\n- Any PRIMARY_PAYER_NAME containing "BCBS" (case-insensitive) = BCBS_Group\n\n## Denial Category Mapping (apply always — never return raw values)\n- Edit/Claim Information/Efficacy     -> Coding\n- Documentation                       -> Additional Information\n- Benefit Level/COB/Eligibility      -> Eligibility\n- Authorization                       -> Authorization\n- Timely Filing                       -> Timely Filing\n- Rendering/Referring Provider        -> Credentialing\n- Miscellaneous                       -> Miscellaneous\n\n## Claim Submission Filter\n- All CLAIM_TABLE queries for submission lag: WHERE PATIENT_NUMBER ILIKE \'%C017%\'\n\n## SLA Targets (exact — use these values in breach logic)\n- Correspondence TAT              <= 3 BD\n- Faxes TAT                       <= 24 Hours\n- Claim Submission Lag            <= 3 BD\n- Eligibility Verification TAT    <= 3 BD\n- Eligibility Rejection Rate      <= 2%\n- Eligibility Denial Rate         <= 2%\n- Authorization Rejection Rate    <= 2%\n- Authorization Denial Rate       <= 2%\n- Auth Initiation TAT (Indiana)   <= 2 BD\n- Auth 1st TAT                    <= 7 Calendar Days\n- Auth 2nd TAT                    <= 3 BD from 1st FU Date\n- Auth Failure Rate (Indiana)     <= 2%\n- Coding Rejection Rate           <= 2%\n- Coding Denial Rate              <= 2%\n- Days in AR                      <= 30 Days\n- Denials FUP TAT                 <= 3 Days from denial date\n- Rejections FUP TAT              <= 2 BD\n- Frontend Denial Rate            <= 5%\n- Payment Posting (ERA) TAT       <= 2 BD\n- 90+ AR %                        <= 15% (progressing goal)\n\n## Breach Behaviour\n- When any metric exceeds its SLA target, return: actual value | SLA target | delta | breach status\n- For progressing goals, note the qualifier in output' },
+      { label: 'Agent Scope Definition', content: 'Agent: [Denials Agent]\nTables: DENIALS, BILLING_TABLE\nDate field: DENIAL_DATE\nMandatory filters: denial category mapping applied, BCBS_Group grouping applied\nSLA targets in scope: Coding Denial Rate <=2%, Eligibility Denial Rate <=2%, Auth Denial Rate <=2%, Frontend Denial Rate <=5%, Denials FUP TAT <=3 Days\nForbidden tables: PAYMENTS_TABLE, VW_MASTERAGENTDATA_SB, aqua views\nCalibration query: [describe known-answer test]\nCalibration result: [expected vs actual — must match before deploy]\nDeployed to: [role list]\nVersion: v1 | Date: [date]' },
+    ],
+    metrics: [
+      'All 20 SLA targets present in Master Ruleset — exact values, no paraphrase',
+      'Denial category mapping embedded as a ruleset rule in Denials Agent — not applied per query',
+      'Rejection code-to-category mapping locked in Rejections Agent — raw codes never appear in outputs',
+      'Every agent scoped to minimum required tables — no cross-agent table sprawl',
+      'Calibration query documented and result verified before each agent is shared',
+      'Master Ruleset version number updated any time an SLA target or mapping changes',
+    ],
+    stella: {
+      bestAt: [
+        'Applying the complete denial category and rejection code mappings automatically — no per-query instruction needed once in the ruleset',
+        'Surfacing breach details in structured format: metric | actual | target | delta | status — ready for QBR copy-paste',
+        'Detecting when a calibration answer diverges from the expected value and explaining which ruleset condition caused the discrepancy',
+      ],
+      needs: [
+        'SLA targets written as exact numeric thresholds, not descriptions — "2%" not "low"',
+        'The breach output format specified in the ruleset — Stella will structure output to the format you define',
+        'Explicit confirmation of whether "progressing goal" SLAs (90+ AR %) should be displayed differently from hard targets',
+      ],
+      ambiguity: 'If the ruleset contains a target but the query does not specify which SLA to evaluate against, Stella will list all applicable targets for the metric and ask which to use before computing breach status.',
+      citation: 'Agent outputs always include ruleset version, SLA target source, mapping version applied, and the computation method used — so any discrepancy between Stella\'s output and a manual calculation can be traced to a specific rule.',
+      good: 'Using Master Ruleset v1, show the Coding denial rate for DATE_TRUNC(\'MONTH\', DENIAL_DATE) = last full month. Apply denial category mapping. Group BCBS into BCBS_Group. Compare to the 2% SLA. Return: mapped category | denial count | denial amount | rate | SLA target | breach status | delta.',
+      bad: 'What are our coding denials this month?',
+    },
+  },
+
+  {
+    id: 3, phase: 'Ask', label: '03 / ASK',
+    title: 'Write Queries That Produce Actionable RCM Output',
+    subtitle: 'Specificity is the difference between insight and noise',
+    color: '#69FF47', accent: '#041200',
+    detail: 'You know how to ask Stella a question. The intermediate skill is asking one she can answer precisely — with the right date anchor, the right denominator, the right comparison period, and an explicit request for breach status and recommended action. Vague questions produce summary numbers. Precise questions produce breach analysis, root cause, and workflow recommendations you can act on in the same session. Every example below maps to a real Tricity table and an exact SLA target.',
+    actions: [
+      { label: 'Anchor every query with DATE_TRUNC(\'MONTH\', [date_field])', note: 'Name the date field explicitly per table: DENIAL_DATE, REPORTDATE, SUBMISSION_DATE, ORDERDATE, PAYMENT_POSTED_DATE. Do not say "this month."' },
+      { label: 'Name the SLA target in the question', note: 'Include the exact SLA value: "compare to the 2% Coding Denial Rate SLA." Stella cannot evaluate a breach without a target.' },
+      { label: 'Request mapped category names, not raw codes', note: 'Ask for "Coding denial rate" not "denial rate for Edit/Claim Information/Efficacy." Stella applies the mapping when asked in mapped terms.' },
+      { label: 'Specify the denominator for rate calculations', note: 'Denial rate = denials / total claims submitted. Rejection rate = rejections / total claims submitted. The denominator source matters: BILLING_TABLE for charges, CLAIM_TABLE for submissions.' },
+      { label: 'Ask for root cause and recommended action', note: '"What drove the breach and what is the recommended next step?" turns a number into a decision. Stella cross-references related tables when scope allows.' },
+      { label: 'Use Deep Dive mode for any QBR-bound output', note: 'Concise mode gives a summary. Deep Dive validates the computation step by step. Anything going to a client or QBR deck requires Deep Dive.' },
+    ],
+    examples: [
+      { prompt: 'From DENIALS, what is the Frontend Denial Rate for DATE_TRUNC(\'MONTH\', DENIAL_DATE) = current month? Denominator = total claims in BILLING_TABLE for the same period. Apply denial category mapping. Compare to the 5% SLA. If breached, show the top 3 contributing mapped categories by denial amount.', context: 'Frontend denial rate with breach drill-down' },
+      { prompt: 'From VW_TRICITY_CORRESPONDENCE_SB, how many correspondence items in the last full month had a TAT exceeding 3 BD between SUBMITTEDDATE and RECEIVEDDATE? Break by TRICITY_CORRESPONDENCETYPE. Flag any type where breach rate exceeds 15% of that type\'s volume.', context: 'Correspondence TAT SLA compliance' },
+      { prompt: 'From OPEN_AR (latest REPORTDATE), show Days in AR trend for the last 6 full months using DATE_TRUNC(\'MONTH\', SERVICE_DATE). Compare each month to the 30-day SLA. For months breaching the SLA, show the split between Insurance and Patient RESPONSIBLE_PARTY.', context: 'Days in AR trend with SLA comparison' },
+      { prompt: 'From VW_TRICITY_FAX_SB, for the last full month, what percentage of fax items exceeded the 24-hour TAT between SUBMITTEDDATE and RECEIVEDDATE? Break by FAXCATEGORY. List the 5 individual CLAIM_NO values with the longest TAT.', context: 'Fax TAT compliance and worst-case outliers' },
+    ],
+    pitfalls: [
+      { mistake: 'Asking for "denial rate" without specifying category or denominator', fix: 'There are 7 mapped denial categories, each with its own SLA. "Denial rate" is not a single metric in this workspace. Always specify the category and the denominator source (BILLING_TABLE vs CLAIM_TABLE).' },
+      { mistake: 'Requesting month-to-date figures for SLA compliance reporting', fix: 'Month-to-date rates are always below full-month rates because the denominator is still accruing. Only compare to SLA targets using complete calendar months via DATE_TRUNC(\'MONTH\').' },
+      { mistake: 'Treating Stella\'s first response as final for QBR use', fix: 'Run Deep Dive on any output destined for a QBR, client report, or escalation. Deep Dive validates each step; Concise mode summarises without intermediate checks.' },
+      { mistake: 'Not specifying the RESPONSIBLE_PARTY split when asking about AR aging', fix: 'Insurance AR and Patient AR behave differently. An overall 90+ AR % that looks acceptable can mask a specific RESPONSIBLE_PARTY segment that is severely breaching the 15% progressing goal.' },
+      { mistake: 'Requesting "all SLA metrics" in a single query without table scoping', fix: 'Each SLA metric lives in a different table. A single "all SLA" query forces Stella to fan out across every source, increasing response time and risk of cross-table join errors. Query by function area.' },
+    ],
+    templates: [
+      { label: 'SLA Compliance Query Template', content: 'From [TABLE_NAME], what is the [SLA metric name] for DATE_TRUNC(\'MONTH\', [DATE_FIELD]) = [period]?\nDenominator: [source and field for total volume, if applicable]\nApply: [denial category mapping / rejection code mapping / BCBS_Group grouping / C017% filter]\nCompare to: [exact SLA target from Master Ruleset]\nIf breached:\n  - Show top [N] contributing [payers / categories / facilities / agents]\n  - Show actual value | SLA target | delta\n  - Recommend next action based on data\nOutput format: [table / summary / QBR-ready]\nMode: [Deep Dive / Concise]' },
+      { label: 'Root Cause Follow-up Template', content: '[SLA metric] breached in [period] for [segment — payer / category / facility].\nWhat drove the breach?\nAnalyse by:\n  1. Primary dimension: [e.g., DENIAL_CATEGORY, PRIMARY_PAYER_NAME, FACILITY_NAME]\n  2. Secondary dimension: [e.g., coder ID, CPT range, VISIT_STATUS from APPOINTMENTS]\nWhat changed vs. [prior period]? Show delta by dimension.\nWhich individual [agents / coders / payers] account for the top 3 breach drivers by volume?\nIs this a new pattern or a continuation from prior months?\nRecommended corrective action: [derive from data, do not summarise generically]' },
+    ],
+    metrics: [
+      'Deep Dive mode used for 100% of QBR-bound and client-facing query outputs',
+      'Every SLA compliance query includes the exact target value and requests breach status explicitly',
+      'Zero month-to-date comparisons used in SLA compliance reporting — full months only',
+      'Root cause and recommended action requested in every breach investigation',
+      'Denominator source (BILLING_TABLE vs CLAIM_TABLE) specified in every denial or rejection rate query',
+      'RESPONSIBLE_PARTY split included in every AR aging query',
+    ],
+    stella: {
+      bestAt: [
+        'Computing SLA breach status, delta, and root cause dimension in a single structured response when the query includes all required inputs',
+        'Cross-referencing DENIALS with VW_TRICITY_FOLLOWUP_SB to produce Denials FUP TAT compliance without a manual join',
+        'Identifying whether a metric breach is driven by volume growth, rate increase, or a single-segment outlier — and stating which',
+      ],
+      needs: [
+        'The denominator definition for any rate calculation — Stella will ask if it is missing rather than assume',
+        'Explicit date field per table — she does not infer DENIAL_DATE vs REPORTDATE vs SUBMISSION_DATE from context',
+        'Output format instruction for QBR-bound queries — specify column names and structure if the output will be copied into a deck or report',
+      ],
+      ambiguity: 'If the query references a period like "this month" rather than a DATE_TRUNC anchor, Stella will clarify whether to use the current partial month or the most recently completed full month before computing.',
+      citation: 'Every output includes: table queried, date field, truncation method, denominator source, mapping applied, and computation steps in Deep Dive mode — enabling full manual recreation of any Stella result.',
+      good: 'From DENIALS, compute Coding denial rate for DATE_TRUNC(\'MONTH\', DENIAL_DATE) = 2026-02-01. Denominator = total BILLING_TABLE records for same month. Apply denial category mapping. Group BCBS into BCBS_Group. Compare to 2% SLA. If breached: show top 3 payers by denial count and amount. Output: table format. Mode: Deep Dive.',
+      bad: 'What are our coding denials looking like this month?',
+    },
+  },
+
+  {
+    id: 4, phase: 'Build', label: '04 / BUILD',
+    title: 'Build Role-Specific RCM Dashboards',
+    subtitle: 'SLA scorecards, AR aging boards, and QBR-ready views',
+    color: '#FFD740', accent: '#161000',
+    detail: 'At this level you move from ad-hoc chat queries to persistent, role-specific dashboards that surface SLA compliance in real time without requiring manual queries each week. Every dashboard in the Tricity workspace must reference real tables, apply the correct mappings, refresh at the right cadence for its SLA window, and be locked to the appropriate role before sharing. Dashboards labelled "Suggested" are Stella-generated proposals — validate each before treating as production-grade.',
+    actions: [
+      { label: 'Describe the dashboard purpose and audience before building', note: 'One sentence: "Daily SLA scorecard for the RCM Director — AR aging, denial rate by category, submission lag." Stella builds to that spec, not a generic RCM view.' },
+      { label: 'Set refresh cadence to match the tightest SLA on the board', note: 'Fax TAT = 24 hours, so fax dashboards refresh every 4 hours. ERA Posting TAT = 2 BD, so payment boards refresh daily. AR aging = daily minimum.' },
+      { label: 'Pin SLA breach alerts from chat sessions to the relevant board', note: 'Any Stella answer that reveals an SLA breach can be pinned as a live widget. This converts one-off queries into ongoing monitoring.' },
+      { label: 'Build separate boards per role — do not share one omnibus RCM dashboard', note: 'AR Specialists need aging detail; they do not need auth TAT. QA Leads need productivity scores; they do not need payment posting data. Role-scoped boards reduce noise and permission exposure.' },
+      { label: 'Validate every Stella-proposed widget against a known baseline before publishing', note: 'Suggested widgets are Stella\'s proposal. Run the underlying query manually against a confirmed historical period. If the numbers match, change status to Validated.' },
+      { label: 'Use QBR_HIGH_LEVEL_METRICS1 exclusively for executive-level summary views', note: 'This table is pre-aggregated for leadership reporting. Do not mix it with granular operational tables in the same board — the aggregation levels are incompatible.' },
+    ],
+    examples: [
+      { prompt: 'Suggested: Build an SLA Scorecard dashboard for the RCM Director. One KPI tile per SLA target (20 total). Each tile shows: current value | SLA target | breach status (green/red) | delta. Sources: respective operational tables. Refresh: daily. Permissions: RCM Director only.', context: 'Suggested: SLA Scorecard — RCM Director' },
+      { prompt: 'Suggested: Build an AR Aging dashboard for AR Specialists. Widgets: 90+ AR % by RESPONSIBLE_PARTY vs 15% progressing goal (OPEN_AR, latest REPORTDATE), Days in AR trend last 6 months (DATE_TRUNC month), open balance by BCBS_Group vs all other payers, claim-level list where SERVICE_DATE > 90 days. Refresh: daily.', context: 'Suggested: AR Aging Board — AR Specialists' },
+      { prompt: 'Suggested: Build a Denial Management board for Denials Analysts. Widgets: denial rate by mapped category MoM (last 6 months), Frontend Denial Rate vs 5% SLA, Denials FUP TAT compliance rate, top 5 payers by denial amount this month. Source: DENIALS, BILLING_TABLE. Refresh: daily.', context: 'Suggested: Denial Management Board — Denials Analyst' },
+      { prompt: 'Suggested: Build a QA Productivity board for the QA Lead. Widgets: TOTALQUALITYSCORE by agent (last month), AUDITCOUNT by agent, TOTALCLIAMWORKED trend last 3 months, agents flagged below 90% quality threshold. Source: VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB. Refresh: weekly. Permissions: QA Lead + RCM Director.', context: 'Suggested: QA Productivity Board — QA Lead' },
+    ],
+    pitfalls: [
+      { mistake: 'Building one shared RCM dashboard for all roles', fix: 'A shared dashboard requires broad data permissions, surfaces irrelevant metrics to each role, and makes it unclear who is responsible for acting on which alert. Build per role.' },
+      { mistake: 'Setting daily refresh on boards with sub-daily SLA windows', fix: 'Fax TAT = 24 hours. A daily refresh at midnight means a fax submitted at 8am that breaches at 9am the next day is only visible the following midnight. Set fax and correspondence TAT boards to a 4-hour refresh minimum.' },
+      { mistake: 'Mixing QBR_HIGH_LEVEL_METRICS1 with operational tables in the same board', fix: 'QBR_HIGH_LEVEL_METRICS1 is a pre-aggregated leadership view. Combining it with row-level DENIALS or OPEN_AR data in the same board produces inconsistent aggregation that cannot be reconciled.' },
+      { mistake: 'Leaving Stella-proposed dashboards in "Suggested" status indefinitely', fix: 'Suggested means unvalidated. A dashboard that reports SLA compliance in "Suggested" status must not be shared outside the team. Set a 5-business-day validation deadline for every new board.' },
+      { mistake: 'Sharing a dashboard link without configuring role permissions first', fix: 'The default share link in Supaboard may expose all connected sources, not just the board\'s data. Set viewer permissions per role group before generating any shareable link.' },
+    ],
+    templates: [
+      { label: 'Dashboard Spec — RCM Workspace', content: 'Dashboard name: [e.g., AR Aging Board]\nPrimary audience: [AR Specialists]\nSecondary access: [RCM Director]\nRefresh cadence: [daily / 4-hour / weekly]\nStatus: [Suggested / Validated]\nValidation deadline: [date]\nValidated by: [name, role]\n\nWidgets:\n1. [Name] — [chart type] — [source table] — [date field] — [SLA target if applicable]\n2. [Name] — [chart type] — [source table] — [date field] — [SLA target if applicable]\n3. [Name] — [chart type] — [source table] — [date field] — [SLA target if applicable]\n\nPermissions set before sharing: [Yes / No]\nRoles with view access: [list]\nKey operational question this board answers:\n  [one sentence]\nValidation baseline: [historical period and confirmed value used to verify]' },
+      { label: 'Widget Validation Checklist', content: 'Widget: [name]\nDashboard: [dashboard name]\nStatus: Suggested -> Validated\n\n[ ] Underlying query identified and reproducible in chat\n[ ] DATE_TRUNC(\'MONTH\') confirmed as date anchor (or explicit exception noted)\n[ ] Denial/rejection mapping applied where applicable\n[ ] BCBS_Group grouping applied where applicable\n[ ] C017% filter applied if CLAIM_TABLE is the source\n[ ] SLA target value matches Master Ruleset exactly\n[ ] Refresh cadence appropriate for SLA window\n[ ] Output matches known historical baseline: [period] = [value]\n[ ] Permissions restricted to: [role list]\nValidated by: [name] on [date]' },
+    ],
+    metrics: [
+      'Every key RCM role has at least one owned, validated dashboard — not a shared omnibus view',
+      'All Suggested dashboards validated within 5 BD of initial Stella build',
+      'SLA scorecard refreshes daily — zero operational boards with stale data older than 24 hours',
+      'Fax and correspondence TAT boards refresh at minimum every 4 hours',
+      'Role permissions configured and confirmed before any dashboard link is shared',
+      'QBR_HIGH_LEVEL_METRICS1 used exclusively for leadership-level aggregate views',
+    ],
+    stella: {
+      bestAt: [
+        'Generating a complete dashboard widget list from a one-sentence description, including source tables, date fields, SLA targets, and refresh recommendation',
+        'Recommending appropriate chart types for RCM data — e.g., SLA compliance as gauge tiles, denial trend as stacked bar by mapped category, AR aging as bucket distribution',
+        'Identifying when a requested dashboard metric requires a denominator from a second table and flagging it before building',
+      ],
+      needs: [
+        'Audience role and refresh cadence before building — these determine table selection and update frequency',
+        'Whether the board is Suggested or Validated — this must be stated in the dashboard spec, not left implicit',
+        'Confirmation of which SLA targets are in scope for the board — not all 20 targets belong on every role\'s board',
+      ],
+      ambiguity: 'If asked to build a dashboard without a refresh cadence, Stella will recommend the shortest SLA window among the board\'s metrics and ask for confirmation before configuring.',
+      citation: 'Every Stella-proposed dashboard widget includes: source table, date field and truncation, SLA target value, mapping applied, and a note indicating Suggested status until explicitly validated.',
+      good: 'Suggested: Build a Denial Management dashboard for Denials Analysts. Include: denial rate by mapped category MoM for last 6 full months (DATE_TRUNC, DENIALS), Frontend Denial Rate vs 5% SLA (DENIALS / BILLING_TABLE denominator), Denials FUP TAT compliance rate vs 3-day SLA (DENIALS joined VW_TRICITY_FOLLOWUP_SB), top 5 payers by denial amount current month (BCBS_Group applied). Refresh daily. Permissions: Denials Analyst + RCM Director.',
+      bad: 'Make me a denials dashboard.',
+    },
+  },
+
+  {
+    id: 5, phase: 'Govern', label: '05 / GOVERN',
+    title: 'Govern Output Quality and Access at Scale',
+    subtitle: 'Permissions, validation trails, and QBR-ready output standards',
+    color: '#FF6D6D', accent: '#160606',
+    detail: 'At the intermediate level, governance means three things: ensuring every output that leaves the team is correct, ensuring only the right people can access the right data, and maintaining the audit trail that lets you defend any number in a QBR. One wrong denial rate in a client deliverable — caused by a missing category mapping or an unfiltered CLAIM_TABLE query — erodes trust in the entire analytics function. Governance is not overhead; it is the last check before a number becomes a commitment.',
+    actions: [
+      { label: 'Assign source-level access by role, not by person', note: 'AR Specialists: OPEN_AR, VW_TRICITY_FOLLOWUP_SB. Denials Analyst: DENIALS, BILLING_TABLE. QA Lead: aqua views, VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB. Payment Poster: PAYMENTS_TABLE. Never grant all-source access by default.' },
+      { label: 'Require Deep Dive mode for all QBR and client-facing outputs', note: 'Any Stella output going into a client deck, QBR document, or escalation email must be generated in Deep Dive mode. Concise mode does not expose intermediate computation steps.' },
+      { label: 'Maintain a QBR evidence log for every delivered metric', note: 'For each metric in a QBR: log the query used, source table, period, mappings applied, and who reviewed it. If a client disputes a number, the log is your audit trail.' },
+      { label: 'Version and date the Master Ruleset on every change', note: 'When an SLA target changes or a mapping is updated, increment the ruleset version, update all affected agents, and note the change date. Agents running stale rulesets produce outdated breach logic.' },
+      { label: 'Run a monthly mapping coverage audit on DENIALS and REJECTIONS', note: 'Payers can introduce new denial categories or rejection codes without notice. Run DISTINCT DENIAL_CATEGORY and REJECTION_CODE monthly and flag any value not covered by the current mapping. Uncovered values silently inflate "Miscellaneous" or break rate totals.' },
+      { label: 'Set a validation expiry for all dashboards', note: 'A dashboard validated against January data may be incorrect by March if upstream table schemas or payer codes have changed. Set a quarterly re-validation cadence for every production board.' },
+    ],
+    examples: [
+      { prompt: 'Generate a QBR evidence table for DATE_TRUNC(\'MONTH\', [date_field]) = last full month. Include all 20 SLA metrics. For each: actual value | SLA target | breach status | source table | date field used | mapping applied. Flag any metric where the query could not complete due to data availability. Output: table format for direct copy-paste.', context: 'QBR evidence package generation' },
+      { prompt: 'From DENIALS for the last 3 full months, show DISTINCT DENIAL_CATEGORY values. For each value, confirm whether it resolves to one of the 7 mapped categories. Flag any value that does NOT resolve. Show count of denial records with unmapped categories.', context: 'Denial mapping coverage audit' },
+      { prompt: 'From VIEW_AUDIT_HEADER (aqua), list all users who accessed PAYMENTS_TABLE in the last 30 days. Group by user role. Flag any access event from a role outside of Payment Poster and RCM Director.', context: 'Access audit — PAYMENTS_TABLE' },
+      { prompt: 'From VW_TRICITY_USER_PRODUCTIVITY_QUALITY_SB (touchpoint), show which agents have not had an AUDITCOUNT record in VIEW_AUDIT_HEADER (aqua) in the last 30 days. These are active workers with no audit trail — flag for QA Lead review.', context: 'Audit trail gap detection' },
+    ],
+    pitfalls: [
+      { mistake: 'Granting workspace admin access to facilitate a one-time data pull', fix: 'Temporary admin grants are rarely revoked. Any data pull request should be fulfilled by the appropriate agent under the requestor\'s existing role permissions, not by elevating access.' },
+      { mistake: 'Using the same Stella output for both internal review and client delivery without a Deep Dive re-run', fix: 'A Concise-mode output used internally and then forwarded to the client skips the validation steps. Always re-run in Deep Dive before any output leaves the team.' },
+      { mistake: 'Updating the Master Ruleset without re-deploying affected agents', fix: 'Agents cache their ruleset at deployment. An updated ruleset has no effect until each affected agent is re-saved and redeployed. Check all agents after any ruleset change.' },
+      { mistake: 'Assuming DISTINCT denial categories are stable month over month', fix: 'Payers periodically update their denial remark codes, which changes the raw DENIAL_CATEGORY values that arrive in your source data. Run the monthly coverage audit — do not assume last month\'s mapping covers this month\'s data.' },
+      { mistake: 'Sharing the QBR evidence log in the same document as the QBR deck', fix: 'The evidence log is an internal audit document. It contains query logic and table names that should not be in client-facing materials. Keep it in a separate, access-controlled location.' },
+    ],
+    templates: [
+      { label: 'QBR Evidence Log', content: 'QBR Period: [month / quarter]\nPrepared by: [name, role]\nReviewed by: [RCM Director name]\nApproved date: [date]\nRuleset version used: [v1 / v2 / etc.]\n\n--- METRIC ENTRIES ---\n\nMetric: [e.g., Coding Denial Rate]\nActual value: [X%]\nSLA target: 2%\nBreach status: [Pass / Fail]\nSource table: DENIALS\nDate field: DENIAL_DATE\nDate truncation: DATE_TRUNC(\'MONTH\', DENIAL_DATE) = [period]\nDenominator source: BILLING_TABLE (total claims billed)\nMappings applied: Denial category mapping, BCBS_Group grouping\nMode: Deep Dive\nReviewed by: [name]\nNotes: [data gaps, caveats, or exceptions]\n\n--- [repeat for each metric] ---' },
+      { label: 'Monthly Governance Checklist', content: 'Month: [period]\nCompleted by: [name]\nDate: [date]\n\n[ ] All 3 sources confirmed live and syncing (tricity, aqua, touchpoint)\n[ ] OPEN_AR REPORTDATE within 2 BD of checklist date\n[ ] DISTINCT DENIAL_CATEGORY audit run — all values covered by mapping\n[ ] DISTINCT REJECTION_CODE audit run — all values covered by mapping\n[ ] Master Ruleset version reviewed — matches current client SLA agreement\n[ ] All agents re-deployed after any ruleset change this month\n[ ] QBR evidence log complete for prior delivery period\n[ ] All dashboard statuses confirmed (Suggested vs Validated)\n[ ] Dashboard re-validation scheduled for any board > 90 days old\n[ ] PAYMENTS_TABLE and aqua access restricted to approved roles\n[ ] No temporary admin grants outstanding\n[ ] Next governance review date: [date]' },
+    ],
+    metrics: [
+      'Zero unmapped DENIAL_CATEGORY or REJECTION_CODE values in any production report',
+      'QBR evidence log complete and reviewed for 100% of client deliverables',
+      'Master Ruleset version incremented and all agents redeployed within 1 BD of any target or mapping change',
+      'Monthly mapping coverage audit completed for DENIALS and REJECTIONS',
+      'All production dashboards re-validated quarterly — no board older than 90 days without a re-validation record',
+      'Zero temporary admin grants outstanding at any governance review date',
+    ],
+    stella: {
+      bestAt: [
+        'Generating a fully populated QBR evidence table — one row per SLA metric, with all required audit fields — in a single Deep Dive query',
+        'Running the monthly mapping coverage audit: comparing DISTINCT source values against the current mapping table and counting unmatched records',
+        'Producing a role-based access audit from VIEW_AUDIT_HEADER: who accessed what, when, and whether their role permitted it',
+      ],
+      needs: [
+        'The current Master Ruleset version number to include in evidence log outputs — Stella cannot detect ruleset version from the data',
+        'The list of approved roles per source table to run a permission audit — this is governance configuration, not derivable from query results',
+        'Explicit QBR period (as a DATE_TRUNC anchor) before generating the evidence package — Stella will not assume the most recent month without confirmation',
+      ],
+      ambiguity: 'If asked to generate a QBR evidence package without a specified period, Stella will list the most recent three full months and ask which to use before computing any metric.',
+      citation: 'QBR evidence outputs include: Stella version, ruleset version, source tables queried, date fields and truncation used, mappings applied, Deep Dive mode confirmation, and row counts at execution time — a complete audit trail in one output.',
+      good: 'Generate a QBR evidence table for DATE_TRUNC(\'MONTH\', [date_field]) = 2026-02-01. Include all 20 SLA metrics from Master Ruleset v1. For each: actual value | SLA target | breach status | source table | date field | mapping applied. Use Deep Dive mode. Flag any metric where data was unavailable. Output as a copy-paste table.',
+      bad: 'Can you pull together the QBR numbers for last month?',
+    },
+  },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let outerIdx = 0;
+let innerIdx = 0;
+let roleFilter = 'All';
+let checkedItems = {};
+let openUC = null;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const prev = btn.textContent;
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = prev; btn.classList.remove('copied'); }, 1800);
+  });
+}
+function step() { return STEPS[outerIdx]; }
+function setPhaseColor(color, accent) {
+  document.documentElement.style.setProperty('--phase-color', color);
+  document.documentElement.style.setProperty('--phase-accent', accent);
+}
+function makeTag(text, colored, warn) {
+  const cls = colored ? ' colored' : warn ? ' warn' : '';
+  return `<span class="tag${cls}">${esc(text)}</span>`;
+}
+function makeCopyBtn(id, label) {
+  return `<button class="copy-btn" data-copy-id="${esc(id)}" aria-label="Copy ${esc(label)}">COPY</button>`;
+}
+function makeDivider() { return `<div class="divider"></div>`; }
+function makeSectionLabel(text) { return `<span class="section-label">${esc(text)}</span>`; }
+
+// ── Inner tab renderers ───────────────────────────────────────────────────────
+function renderOverview(s) {
+  return `<p class="overview-text">${esc(s.detail)}</p>`;
+}
+
+function renderChecklist(s) {
+  return s.actions.map((a, i) => {
+    const key = `${outerIdx}-${i}`;
+    const done = !!checkedItems[key];
+    return `<div class="check-item${done ? ' done' : ''}" data-check-key="${key}">
+      <div class="check-box">${done ? 'x' : ''}</div>
+      <div>
+        <div class="check-label">${esc(a.label)}</div>
+        <div class="check-note">${esc(a.note)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderExamples(s) {
+  return s.examples.map((ex, i) => {
+    const id = `ex-${outerIdx}-${i}`;
+    return `<div class="example-card">
+      <div class="example-head">${makeTag(ex.context, true)}${makeCopyBtn(id, ex.context)}</div>
+      <p class="example-prompt">"${esc(ex.prompt)}"</p>
+      <textarea id="${id}" style="display:none">${esc(ex.prompt)}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function renderPitfalls(s) {
+  return s.pitfalls.map(p => `<div class="pitfall-card">
+    <div class="pitfall-mistake">[!] ${esc(p.mistake)}</div>
+    <div class="pitfall-fix">Fix: ${esc(p.fix)}</div>
+  </div>`).join('');
+}
+
+function renderTemplates(s) {
+  return s.templates.map((t, i) => {
+    const id = `tpl-${outerIdx}-${i}`;
+    return `<div class="template-head">${makeTag(t.label, true)}${makeCopyBtn(id, t.label)}</div>
+    <pre class="template-pre" id="${id}">${esc(t.content)}</pre>`;
+  }).join('');
+}
+
+function renderMetrics(s) {
+  return makeSectionLabel('How to know this phase is working') +
+    s.metrics.map((m, i) => `<div class="metric-row">
+      <span class="metric-num">[${String(i+1).padStart(2,'0')}]</span>
+      <span class="metric-text">${esc(m)}</span>
+    </div>`).join('');
+}
+
+function renderStella(s) {
+  const st = s.stella;
+  const goodId = `stella-good-${outerIdx}`;
+  const badId  = `stella-bad-${outerIdx}`;
+  const rows = arr => arr.map(item => `<div class="stella-row">
+    <span class="stella-plus">+</span>
+    <span class="stella-item">${esc(item)}</span>
+  </div>`).join('');
+
+  return `${makeSectionLabel('Stella is best at')}${rows(st.bestAt)}
+  ${makeDivider()}
+  ${makeSectionLabel('What Stella needs from you')}${rows(st.needs)}
+  ${makeDivider()}
+  ${makeSectionLabel('How Stella handles ambiguity')}
+  <p class="stella-body" style="margin-bottom:14px">${esc(st.ambiguity)}</p>
+  ${makeSectionLabel('How Stella cites outputs')}
+  <p class="stella-body" style="margin-bottom:14px">${esc(st.citation)}</p>
+  ${makeDivider()}
+  ${makeSectionLabel('Request quality examples')}
+  <div class="req-block">
+    <div class="req-label-row">
+      <span class="req-label good">[GOOD REQUEST]</span>${makeCopyBtn(goodId, 'good request')}
+    </div>
+    <div class="req-text good">"${esc(st.good)}"</div>
+    <textarea id="${goodId}" style="display:none">${esc(st.good)}</textarea>
+  </div>
+  <div class="req-block">
+    <div class="req-label-row">
+      <span class="req-label bad">[BAD REQUEST]</span>${makeCopyBtn(badId, 'bad request')}
+    </div>
+    <div class="req-text bad">"${esc(st.bad)}"</div>
+    <textarea id="${badId}" style="display:none">${esc(st.bad)}</textarea>
+  </div>`;
+}
+
+function renderInnerContent(s) {
+  switch(innerIdx) {
+    case 0: return renderOverview(s);
+    case 1: return renderChecklist(s);
+    case 2: return renderExamples(s);
+    case 3: return renderPitfalls(s);
+    case 4: return renderTemplates(s);
+    case 5: return renderMetrics(s);
+    case 6: return renderStella(s);
+    default: return '';
+  }
+}
+
+// ── Use cases ─────────────────────────────────────────────────────────────────
+function renderUseCases() {
+  const filtered = roleFilter === 'All' ? USE_CASES : USE_CASES.filter(u => u.role === roleFilter);
+
+  document.getElementById('role-filters').innerHTML = ALL_ROLES.map(r =>
+    `<button class="role-btn" aria-pressed="${r === roleFilter}" data-role="${esc(r)}">${esc(r).toUpperCase()}</button>`
+  ).join('');
+
+  document.getElementById('uc-list').innerHTML = filtered.map((uc, i) => {
+    const isOpen = openUC === i;
+    return `<div class="uc-card${isOpen ? ' open' : ''}" data-uc-index="${i}">
+      <button class="uc-trigger" aria-expanded="${isOpen}">
+        <div class="uc-trigger-top">
+          <span class="tag colored">${esc(uc.role)}</span>
+          <span class="uc-toggle">${isOpen ? '[-]' : '[+]'}</span>
+        </div>
+        <p class="uc-query">"${esc(uc.query)}"</p>
+      </button>
+      <div class="uc-body">
+        <div class="uc-agent-row">
+          <span class="uc-agent-label">AGENT</span>
+          <span class="tag">${esc(uc.agent)}</span>
+        </div>
+        <div class="uc-result">[+] ${esc(uc.result)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('integrations-tags').innerHTML = SOURCES.map(t =>
+    `<span class="tag">${esc(t)}</span>`
+  ).join('');
+}
+
+// ── Full render ───────────────────────────────────────────────────────────────
+function render() {
+  const s = step();
+  setPhaseColor(s.color, s.accent);
+
+  document.getElementById('brand-dot').style.cssText =
+    `background:${s.color};box-shadow:0 0 10px ${s.color};width:8px;height:8px;border-radius:50%;transition:all 0.3s;flex-shrink:0`;
+  document.querySelector('.header-brand').style.color = s.color;
+
+  const pct = ((outerIdx + 1) / STEPS.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-bar').style.background = s.color;
+  document.getElementById('progress-wrap').setAttribute('aria-valuenow', outerIdx + 1);
+
+  document.getElementById('phase-title-text').textContent = s.title;
+  document.getElementById('phase-subtitle').textContent = s.subtitle;
+  document.getElementById('phase-subtitle').style.color = s.color;
+  document.getElementById('phase-titlebar').style.background =
+    `linear-gradient(90deg, ${s.accent} 0%, var(--bg1) 100%)`;
+  document.getElementById('phase-titlebar').style.borderLeftColor = s.color;
+
+  document.getElementById('phase-nav').innerHTML = STEPS.map((st, i) =>
+    `<button class="phase-tab" role="tab" aria-selected="${i === outerIdx}"
+      id="phase-tab-${i}" aria-controls="inner-panel" data-outer-idx="${i}">
+      ${esc(st.label)}
+    </button>`
+  ).join('');
+
+  document.getElementById('inner-nav').innerHTML = INNER_TABS.map((tab, i) =>
+    `<button class="inner-tab" role="tab" aria-selected="${i === innerIdx}" data-inner-idx="${i}">
+      ${esc(tab.toUpperCase())}
+    </button>`
+  ).join('');
+
+  document.getElementById('inner-panel').innerHTML = renderInnerContent(s);
+  renderUseCases();
+
+  document.getElementById('dot-nav').innerHTML = STEPS.map((_, i) =>
+    `<button class="dot-btn" aria-label="Go to phase ${i+1}: ${STEPS[i].phase}"
+      ${i === outerIdx ? 'aria-current="step"' : ''} data-outer-idx="${i}"></button>`
+  ).join('');
+
+  const prevBtn = document.getElementById('btn-prev');
+  const nextBtn = document.getElementById('btn-next');
+  prevBtn.disabled = outerIdx === 0;
+  nextBtn.disabled = outerIdx === STEPS.length - 1;
+  if (outerIdx < STEPS.length - 1) {
+    nextBtn.style.background = s.color;
+    nextBtn.style.borderColor = s.color;
+    nextBtn.style.color = '#000';
+  } else {
+    nextBtn.style.background = 'none';
+    nextBtn.style.borderColor = 'var(--border-faint)';
+    nextBtn.style.color = 'var(--text3)';
+  }
+
+  bindEvents();
+}
+
+// ── Event binding ─────────────────────────────────────────────────────────────
+function bindEvents() {
+  document.querySelectorAll('[data-outer-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      outerIdx = parseInt(btn.dataset.outerIdx);
+      innerIdx = 0; openUC = null; render();
+    });
+  });
+  document.querySelectorAll('[data-inner-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      innerIdx = parseInt(btn.dataset.innerIdx); render();
+    });
+  });
+  document.querySelectorAll('.check-item').forEach(el => {
+    el.addEventListener('click', () => {
+      checkedItems[el.dataset.checkKey] = !checkedItems[el.dataset.checkKey]; render();
+    });
+  });
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const src = document.getElementById(btn.dataset.copyId);
+      copyText(src ? src.value || src.textContent : '', btn);
+    });
+  });
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleFilter = btn.dataset.role; openUC = null;
+      renderUseCases(); bindEvents();
+    });
+  });
+  document.querySelectorAll('.uc-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.closest('.uc-card').dataset.ucIndex);
+      openUC = openUC === idx ? null : idx;
+      renderUseCases(); bindEvents();
+    });
+  });
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    if (outerIdx > 0) { outerIdx--; innerIdx = 0; openUC = null; render(); }
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    if (outerIdx < STEPS.length - 1) { outerIdx++; innerIdx = 0; openUC = null; render(); }
+  });
+  const dim = document.getElementById('audience-dismiss');
+  if (dim) dim.addEventListener('click', () => {
+    document.getElementById('audience-banner').classList.add('hidden');
+  });
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (!e.ctrlKey && !e.metaKey) {
+    if (e.key === 'ArrowRight' && outerIdx < STEPS.length - 1) { outerIdx++; innerIdx = 0; openUC = null; render(); }
+    if (e.key === 'ArrowLeft'  && outerIdx > 0)                { outerIdx--; innerIdx = 0; openUC = null; render(); }
+  } else {
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (innerIdx < INNER_TABS.length - 1) { innerIdx++; render(); } }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); if (innerIdx > 0) { innerIdx--; render(); } }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
